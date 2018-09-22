@@ -4,7 +4,7 @@ import os
 
 
 def save_game_data(save_classification, save_rarity, save_damage, save_speed, save_level, save_experience,
-                   save_total_player_health, save_player_gold):
+                   save_total_player_health, save_player_gold, save_mage_follower):
     data_to_save = []
     data_to_save.append(str(save_classification))
     data_to_save.append(str(save_rarity))
@@ -14,6 +14,7 @@ def save_game_data(save_classification, save_rarity, save_damage, save_speed, sa
     data_to_save.append(str(save_experience))
     data_to_save.append(str(save_total_player_health))
     data_to_save.append(str(save_player_gold))
+    data_to_save.append(str(save_mage_follower))
 
     return data_to_save
 
@@ -96,16 +97,20 @@ def load_save():
                 print()
 
         elif save_slot == 'q':
-            list(save_data)
+##            save_data = []
+##            # weapon, class, damage, speed, level, xp, health, gold, mage follower
+##            save_data.append('longsword')
+##            save_data.append('common')
+##            save_data.append('1')
+##            save_data.append('5')
+##            save_data.append('1')
+##            save_data.append('0')
+##            save_data.append('30')
+##            save_data.append('0')
+##            save_data.append('False')
 
-            save_data.append('longsword')
-            save_data.append('common')
-            save_data.append('1')
-            save_data.append('5')
-            save_data.append('1')
-            save_data.append('0')
-            save_data.append('50')
-
+##            return save_data
+            save_data = 'new'
             return save_data
 
 
@@ -148,7 +153,7 @@ def rating(level):
 
 
 def stats(weapon_class, weapon_rating, level, experience):
-    damage_multi_class = {'common' : 1, 'uncommon' : 5, 'rare' : 10, 'epic' : 15, 'peerless' : 20}
+    damage_multi_class = {'common' : 1, 'uncommon' : 2, 'rare' : 3, 'epic' : 4, 'peerless' : 5}
     
     damage_multi_weapon = {'shortsword' : 0.9,
                            'longsword' : 1,
@@ -181,7 +186,7 @@ def monster_choice(level):
                           4 : ['goblin', 'skeleton', 'minotaur', 'wolf', 'bear', 'spitter'],
                           5 : ['goblin', 'armoured skeleton', 'minotaur', 'spitter', 'bear', 'white wolf'],
                           6 : ['vicious goblin', 'armoured skeleton', 'minotaur marauder', 'toxic spitter', 'white wolf', 'troll'],
-                          7 : ['dragon', 'minotaur marauder', 'venom spitter', 'shadow wolf', 'ravager troll']}
+                          7 : ['minotaur marauder', 'venom spitter', 'shadow wolf', 'ravager troll']}
     monster = random.choice(monster_choice_dict[level])
     return monster
 
@@ -252,7 +257,233 @@ def m_health(level, h_multiplier, experience):
     return enemy_health_minimum, enemy_health_maximum
 
 
-def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, damage, inventory, magic, inventory_dict, magic_dict):
+def boss_one(health, speed, damage, inventory, magic, inventory_dict, magic_dict, mage_ally):
+    
+    monster = 'Kruug, the Inflammatory'
+    enemy_health = 40000
+    enemy_damage = 100 * (health / damage)
+
+    print()
+    print("You and your companion reach the entrance of a smoggy cave")
+    print("Within, you encounter the first of your major enemies, one that you set out to defeat.")
+    time.sleep(0.5)
+    print("The mighty dragon, {}!".format(monster))
+    time.sleep(1)
+
+    print("Your weapon will deal {:.2f} damage per hit. ".format(damage))
+    print("You have {} health. ".format(health))
+
+    while enemy_health > 0 and health > 0:
+        time.sleep(0.5)
+        
+
+        reflect_damage = False
+        negate_damage = False
+        crit = False
+        stagger = False
+        cripple = False
+        initial_enemy_damage = enemy_damage
+        repeats = 0
+        spirit = 10
+        print("You have {} spirit.".format(spirit))
+        loop = True
+        while loop:           
+
+            move = input('''Choose a move:
+    < attack    (1) >
+    < block     (2) >
+    < use item  (3) >
+    < use spell (4) >
+            ''')
+            
+            if move == '1':
+                if crit:
+                    enemy_health -= damage * 1.7
+                    print("you attacked Kruug for {:.2f} damage, they have {:.2f} health remaining!".format(damage * 1.5, enemy_health))
+                    crit = False
+                    
+                else:
+                    enemy_health -= damage
+                    print( "you attacked Kruug for {:.2f} damage, they have {:.2f} health remaining!".format(damage, enemy_health))
+                    
+                    if mage_ally:
+                        enemy_health -= damage / 2
+                        print("The mage attacked Kruug for {:.2f} damage, they have {:.2f} health remaining!".format(damage / 2, enemy_health))
+
+                if enemy_health < 0 or health < 0:
+                    break
+
+                if stagger:
+                    health -= (enemy_damage / 2)
+                    stagger = False
+                    
+                else:
+                    if reflect_damage:
+                        enemy_health -= enemy_damage
+                        print("You deflected {:.2f} damage, they have {:.2f} health remaining!".format(enemy_damage, enemy_health))
+                        reflect_damage = False
+                        
+                    elif negate_damage:
+                        print("Your potion blocked Kruug's attack!")
+                        negate_damage = False
+                        
+                    else:
+                        health -= enemy_damage
+                        print("Kruug attacked you for {:.2f} damage, you have {:.2f} health remaining!".format(enemy_damage, health))
+          
+                if monster_health < 0 or health < 0:
+                    break
+                
+            elif move == '2':
+                if reflect_damage:
+                    enemy_health -= enemy_damage
+                    print("You deflected {:.2f} damage, they have {:.2f} health remaining!".format(enemy_damage, enemy_health))
+                    reflect_damage = False
+                    
+                elif negate_damage:
+                    print("Your potion blocked Kruug's attack!")
+                    negate_damage = False
+                
+                else:
+                    health -= (enemy_damage / 3)
+                    print("Kruug attacked you for {:.2f} damage, you have {:.2f} health remaining!".format(enemy_damage / 3, health))
+          
+                if enemy_health < 0 or health < 0:
+                    break
+                
+                print("Your next attack will deal 70 % more damage! ")
+                crit = True
+                stagger = True
+                
+            elif move == '3':
+                valid_number = 0
+                for item in inventory_dict:
+                    if item in inventory:
+                        valid_number += 1
+                    
+                   
+                if valid_number == 0:
+                    print('Your inventory is empty!')
+                    
+                else:
+                    print("In your inventory, you have:")
+
+                    
+                    for item, number in inventory_dict.items():
+                        if item in inventory:
+                            duplicates = inventory.count(item)
+                            print(item, 'x' + str(duplicates) +'   <{}>'.format(number))
+                    
+                        
+                    choosing_item = True
+                    while choosing_item:
+                        use_item = input("""What item would you like to use? Type the number or enter <q> to exit """).strip().lower()
+                            
+                        if (use_item == inventory_dict['Small Health Potion']) and ('Small Health Potion' in inventory):
+                            health += (0.25 * total_player_health)
+                            print('You have been healed for {:.2f} points, you have {:.2f} health'.format(0.25 * total_player_health, health))
+                            inventory.remove('Small Health Potion')
+                            choosing_item = False
+                            
+                        elif (use_item == inventory_dict['Large Health Potion']) and ('Large Health Potion' in inventory):
+                            health += (0.75 * total_player_health)
+                            print('You have been healed for {:.2f} points, you have {:.2f} health'.format(0.75 * total_player_health, health))
+                            inventory.remove('Large Health Potion')
+                            choosing_item = False
+                            
+                        elif (use_item == inventory_dict['Berserker Potion']) and ('Berserker Potion' in inventory):
+                            damage *= 1.6
+                            inventory.remove('Berserker Potion')
+                            choosing_item = False
+                            
+                        elif (use_item == inventory_dict['Reflect Potion']) and ('Reflect Potion' in inventory):
+                            reflect_damage = True
+                            inventory.remove('Reflect Potion')
+                            choosing_item = False
+                            
+                        elif (use_item == inventory_dict['Damage Potion']) and ('Damage Potion' in inventory):
+                            enemy_health -= (enemy_health * 0.3)
+                            print("The {} has been damaged for {:.2f} points, they have {:.2f} health left.".format(monster, enemy_health * 0.3, enemy_health))
+                            inventory.remove('Damage Potion')
+                            choosing_item = False
+
+                        elif (use_item == inventory_dict['Negative Potion']) and ('Negative Potion' in inventory):
+                            negate_damage = True
+                            inventory.remove('Negative Potion')
+                            choosing_item = False
+
+                        elif use_item == 'q':
+                            choosing_item = False
+
+                        else:
+                            print('That is not a usable item')
+                            
+            elif move == '4':
+                valid_number = 0
+                for spell in magic_dict:
+                    if spell in magic:
+                        valid_number += 1
+
+                if valid_number == 0:
+                    print('You know no spells.')
+                    
+                else:
+                    print("You can cast:")
+                    for spell, number in magic_dict.items():
+                        if spell in magic:
+                            print(spell, '   <{}>'.format(number))
+                        
+                    choosing_spell = True
+                    while choosing_spell:
+                        use_spell = input("""What spell would you like to use? Type the number or enter <q> to exit """).strip().lower()
+                        if (use_spell == magic_dict['Cripple']) and ('Cripple' in magic) and (spirit >= 5):
+                            cripple = True
+                            print('Kruug has been crippled!')
+                            spirit -= 5
+                            print('You have {} spirit remaining'.format(spirit))
+                            choosing_spell = False
+                            
+                        elif (use_spell == magic_dict['Blood Leech']) and ('Blood Leech' in magic) and (spirit >= 2):
+                            enemy_health -= (enemy_health * 0.2)
+                            health += (enemy_health * 0.2)
+                            print('Kruug has been wounded for {:.2f} and you have been healed for {:.2f}!'.format(enemy_health * 0.2, enemy_health * 0.2))
+                            spirit -= 2
+                            print('You have {} spirit remaining'.format(spirit))
+                            choosing_spell = False
+                            
+                        elif (use_spell == magic_dict['Inversion']) and ('Inversion' in magic) and (spirit >= 2):
+                            health, enemy_health = enemy_health, health
+                            print('You have traded strength with Kruug, you have {:.2f} health and Kruug has {:.2f} health.'.format(health, enemy_health))
+                            spirit -= 2
+                            print('You have {} spirit remaining'.format(spirit))
+                            choosing_spell = False
+
+                        elif use_spell == 'q':
+                            choosing_spell = False
+
+                        else:
+                            print('You cannot cast that.')
+                                            
+                        
+            else:
+                print("That is not an option. ")
+                
+    if health <= 0:
+        print("""
+        You have been defeated by {}!
+        """.format(monster))
+        dead = True
+        return dead
+
+    elif monster_health <= 0:
+        print("""
+        You have defeated {}!
+        """.format(monster))
+        return dead
+    
+
+
+def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, damage, inventory, magic, inventory_dict, magic_dict, mage_ally):
 
     player_first = False
     monster_first = False
@@ -272,7 +503,7 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
 
                 
     print("Your weapon will deal {:.2f} damage per hit. ".format(damage))
-    print("You have {} health. ".format(health))
+    print("You have {:.2f} health. ".format(health))
 
     while enemy_health > 0 and health > 0:
         time.sleep(0.5)
@@ -311,6 +542,10 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
                 else:
                     enemy_health -= damage
                     print( "you attacked the {} for {:.2f} damage, they have {:.2f} health remaining!".format(monster, damage, enemy_health))
+                    
+                    if mage_ally:
+                        enemy_health -= damage / 2
+                        print("The mage attacked the {} for {:.2f} damage, they have {:.2f} health remaining!".format(monster, damage / 2, enemy_health))
 
                 if enemy_health < 0 or health < 0:
                     break
@@ -341,6 +576,7 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
                     enemy_health -= enemy_damage
                     print("You deflected {:.2f} damage, they have {:.2f} health remaining!".format(enemy_damage, enemy_health))
                     reflect_damage = False
+                    
                 elif negate_damage:
                     print("Your potion blocked the {}'s attack!".format(monster))
                     negate_damage = False
@@ -439,7 +675,6 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
                         if (use_spell == magic_dict['Cripple']) and ('Cripple' in magic) and (spirit >= 5):
                             cripple = True
                             print('The {} has been crippled!'.format(monster))
-                            magic.remove('Cripple')
                             spirit -= 5
                             print('You have {} spirit remaining'.format(spirit))
                             choosing_spell = False
@@ -448,15 +683,13 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
                             enemy_health -= (enemy_health * 0.2)
                             health += (enemy_health * 0.2)
                             print('The {} has been wounded for {:.2f} and you have been healed for {:.2f}!'.format(monster, enemy_health * 0.2, enemy_health * 0.2))
-                            magic.remove('Blood Leech')
                             spirit -= 2
                             print('You have {} spirit remaining'.format(spirit))
                             choosing_spell = False
                             
                         elif (use_spell == magic_dict['Inversion']) and ('Inversion' in magic) and (spirit >= 2):
                             health, enemy_health = enemy_health, health
-                            print('You have been healed for {:.2f} points, you have {:.2f} health'.format(0.25 * total_player_health, health))
-                            magic.remove('Small Health Potion')
+                            print('You have traded strengths with the {}, you have {:.2f} health and they have {:.2f} health.'.format(health,enemy_health))
                             spirit -= 2
                             print('You have {} spirit remaining'.format(spirit))
                             choosing_spell = False
@@ -486,9 +719,9 @@ def combat(monster, enemy_damage, enemy_health, enemy_speed, health, speed, dama
                 
 
 primary_loop = 'y'
-while primary_loop:
+while primary_loop == 'y':
     player_experience = 0
-    player_gold = 0
+    player_gold = 50
     main_inventory = []
     main_inventory_dict = {'Small Health Potion' : '1',
                            'Large Health Potion' : '2',
@@ -510,6 +743,10 @@ while primary_loop:
     level_six = False
     level_seven = False
 
+    level_seven_boss = False
+
+    mage_follower = False
+
     player_dead = False
 
     total_player_health = 30
@@ -529,46 +766,51 @@ while primary_loop:
         repeat = True
         while repeat:
             save_data = load_save()
-            try:
-                player_classification = save_data[0].strip()
-                player_rarity = save_data[1].strip()
-                player_damage = float(save_data[2])
-                player_speed = int(save_data[3])
-                player_level = int(save_data[4])
-                player_experience = float(save_data[5])
-                player_gold = int(save_data[7])
-                read_magic = save_data[8].split('\t')
-                for spell in read_magic:
-                    player_magic.append(spell)
-                
-                read_items = save_data[9].split('\t')
-                for item in read_items:
-                    main_inventory.append(item)
+            if save_data != 'new':
+                try:
+                    player_classification = save_data[0].strip()
+                    player_rarity = save_data[1].strip()
+                    player_damage = float(save_data[2])
+                    player_speed = int(save_data[3])
+                    player_level = int(save_data[4])
+                    player_experience = float(save_data[5])
+                    player_gold = int(save_data[7])
+                    mage_follower = save_data[9]
+                    read_magic = save_data[9].split('\t')
+                    for spell in read_magic:
+                        player_magic.append(spell)
                     
+                    read_items = save_data[10].split('\t')
+                    for item in read_items:
+                        main_inventory.append(item)
+                        
 
-                if player_level >= 1:
-                    level_one = True
-                if player_level >= 2:
-                    level_two = True
-                if player_level >= 3:
-                    level_three = True
-                if player_level >= 4:
-                    level_four = True
-                if player_level >= 5:
-                    level_five = True
-                if player_level >= 6:
-                    level_six = True
-                if player_level >= 7:
-                    level_seven = True
+                    if player_level >= 1:
+                        level_one = True
+                    if player_level >= 2:
+                        level_two = True
+                    if player_level >= 3:
+                        level_three = True
+                    if player_level >= 4:
+                        level_four = True
+                    if player_level >= 5:
+                        level_five = True
+                    if player_level >= 6:
+                        level_six = True
+                    if player_level >= 7:
+                        level_seven = True
 
-                total_player_health = int(save_data[6])
+                    total_player_health = float(save_data[6])
 
-                player_health = total_player_health
+                    player_health = total_player_health
+                    repeat = False
+
+                except IndexError:
+                    print('That save is empty!')
+                    print()
+
+            else:
                 repeat = False
-
-            except IndexError:
-                print('That save is empty!')
-                print()
 
     print("""Your weapon is a {} {}:
     > Damage: {:.2f}
@@ -602,7 +844,11 @@ while primary_loop:
 
         time.sleep(1)
 
-        dead = combat(chosen_monster, monster_damage, monster_health, monster_speed, player_health, player_speed, player_damage, main_inventory, player_magic, main_inventory_dict, main_magic_dict)
+        if not level_seven_boss and level_seven:
+            dead = boss_one(player_health, player_speed, main_inventory, player_magic, main_inventory_dict, main_magic_dict, mage_follower)
+
+        else:
+            dead = combat(chosen_monster, monster_damage, monster_health, monster_speed, player_health, player_speed, player_damage, main_inventory, player_magic, main_inventory_dict, main_magic_dict, mage_follower)
 
         if dead:
             break
@@ -613,6 +859,7 @@ while primary_loop:
         player_gold += gold
         print("XP: {:.2f}".format(player_experience))
         print("Gold: {}".format(player_gold))
+        total_player_health += (monster_health * 0.01)
         time.sleep(1)
 
         if 50 <= player_experience < 200 and not level_two:
@@ -761,62 +1008,72 @@ MERCHANT STOCK:
                         shopping = False
                         
         mage = random.randrange(1, 100)
-        if 0 == mage % 3:
-            print()
-            print("You encounter a travelling mage.")
-            buy_spells = input('Would you like to see what they have for sale? (y/n)')
-            if buy_spells == 'y':
-                shopping = True
-                mage_items = {'Cripple' : [80, '[reduce enemy damage by 40 % and weaken them by 40 %]'],
-                                  'Blood Leech' : [120, '[damage enemy for 20 % health and heal you for that much]'],
-                                  'Inversion' : [100, "[switch your current health with the enemy's health.]"]}
-
-                shop_choice = []
-                for i in range(3):
-                        shop_choice.append(random.choice(list(mage_items)))
-                        
-                while shopping:
+        if not mage_follower:
+            if 0 == mage % 3:
+                print()
+                print("You encounter a travelling mage.")
+                if len(player_magic) == len(main_magic_dict):
+                    print('The mage is impressed by your knowledge of magic, and would like to join you in your quest')
+                    mage_join = input('Would you like the mage to join you? (y/n) ')
+                    if mage_join == 'y':
+                        mage_follower = True
                 
-    
-                    buy = input("""
-MAGE STOCK:
-    > {} {} -- {} Gold (input <1> to buy)
-    > {} {} -- {} Gold (input <2> to buy)
-    > {} {} -- {} Gold (input <3> to buy)
-    When finished, input <q> to exit the store.
+                else:                
+                    buy_spells = input('Would you like to see what they have for sale? (y/n)')
+                    if buy_spells == 'y':
+                        shopping = True
+                        mage_items = {'Cripple' : [80, '[reduce enemy damage by 40 % and weaken them by 40 %]'],
+                                          'Blood Leech' : [120, '[damage enemy for 20 % health and heal you for that much]'],
+                                          'Inversion' : [100, "[switch your current health with the enemy's health.]"]}
 
-    [spells are one time purchases, and can be used more than once]
-    You have {} gold to spend
-    
-    """.format(shop_choice[0], mage_items[shop_choice[0]][1], mage_items[shop_choice[0]][0],
-               shop_choice[1], mage_items[shop_choice[1]][1], mage_items[shop_choice[1]][0],
-               shop_choice[2], mage_items[shop_choice[2]][1], mage_items[shop_choice[2]][0],
-               player_gold))
-                    print()
-                    if buy == '1':
-                        if player_gold >= mage_items[shop_choice[0]][0]:
-                            player_magic.append(shop_choice[0])
-                            player_gold -= mage_items[shop_choice[0]][0]
-                        else:
-                            print('You do not have enough gold for that spell.')
-                    elif buy == '2':
-                        if player_gold >= mage_items[shop_choice[1]][0]:
-                            player_magic.append(shop_choice[1])
-                            player_gold -= mage_items[shop_choice[1]][0]
-                        else:
-                            print('You do not have enough gold for that spell.')
-                    elif buy == '3':
-                        if player_gold >= mage_items[shop_choice[2]][0]:
-                            player_magic.append(shop_choice[2])
-                            player_gold -= mage_items[shop_choice[2]][0]
-                        else:
-                            print('You do not have enough gold for that spell.')
-                    else:
-                        shopping = False
+                        shop_choice = []
+                        for i in range(3):
+                                shop_choice.append(random.choice(list(mage_items)))
+                                
+                        while shopping:
+                        
+            
+                            buy = input("""
+        MAGE STOCK:
+            > {} {} -- {} Gold (input <1> to buy)
+            > {} {} -- {} Gold (input <2> to buy)
+            > {} {} -- {} Gold (input <3> to buy)
+            When finished, input <q> to exit the store.
+
+            [spells are one time purchases, and can be used more than once]
+            You have {} gold to spend
+            
+            """.format(shop_choice[0], mage_items[shop_choice[0]][1], mage_items[shop_choice[0]][0],
+                       shop_choice[1], mage_items[shop_choice[1]][1], mage_items[shop_choice[1]][0],
+                       shop_choice[2], mage_items[shop_choice[2]][1], mage_items[shop_choice[2]][0],
+                       player_gold))
+                            print()
+                            if buy == '1':
+                                if player_gold >= mage_items[shop_choice[0]][0]:
+                                    player_magic.append(shop_choice[0])
+                                    player_gold -= mage_items[shop_choice[0]][0]
+                                else:
+                                    print('You do not have enough gold for that spell.')
+                            elif buy == '2':
+                                if player_gold >= mage_items[shop_choice[1]][0]:
+                                    player_magic.append(shop_choice[1])
+                                    player_gold -= mage_items[shop_choice[1]][0]
+                                else:
+                                    print('You do not have enough gold for that spell.')
+                            elif buy == '3':
+                                if player_gold >= mage_items[shop_choice[2]][0]:
+                                    player_magic.append(shop_choice[2])
+                                    player_gold -= mage_items[shop_choice[2]][0]
+                                else:
+                                    print('You do not have enough gold for that spell.')
+                            else:
+                                shopping = False
+        else:
+            print()
                         
         battle = input('Press <enter> to continue, or press <s> to save your game. ')
         if battle == 's':
-            save_data = save_game_data(player_classification, player_rarity, player_damage, player_speed, player_level, player_experience, total_player_health, player_gold)
+            save_data = save_game_data(player_classification, player_rarity, player_damage, player_speed, player_level, player_experience, total_player_health, player_gold, mage_follower)
             create_save(save_data, main_inventory, player_magic)
 
             battle = input("Save successful! Press <enter> to continue or <q> to quit. ")
